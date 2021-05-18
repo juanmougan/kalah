@@ -7,6 +7,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,4 +37,7 @@ public class Game {
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private Status status;
+
+  // @OneToOne
+  // private Board board;
 }

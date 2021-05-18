@@ -14,4 +14,10 @@ public class GameService {
   public Game getById(UUID id) {
     return gameRepository.getOne(id);
   }
+
+  public Game create(GameRequest gameRequest) {
+    return gameRepository.save(Game.builder()
+        .status(Status.STARTED)
+        .build());
+  }
 }

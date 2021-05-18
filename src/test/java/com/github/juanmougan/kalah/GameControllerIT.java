@@ -1,6 +1,8 @@
 package com.github.juanmougan.kalah;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +12,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -31,11 +36,53 @@ public class GameControllerIT {
     final MvcResult getByIdResult = this.mockMvc.perform(get(Endpoints.GAMES + "/" + id))
         .andExpect(status().isOk())
         .andReturn();
-    final String responseAsString = getByIdResult.getResponse().getContentAsString();
-    final Game game = this.objectMapper.readValue(responseAsString, Game.class);
+    final Game game = deserializeResponse(getByIdResult);
     // THEN return the Game data
     assertThat(game).extracting(Game::getId).isEqualTo(id);
     assertThat(game).extracting(Game::getStatus).isEqualTo(Status.STARTED);
     // TODO rest of the assertions
+  }
+
+  @Test
+  public void givenGameRequestData_whenCreateGame_thenCreateIt_andReturnItsData()
+      throws Exception {
+    // GIVEN some Game data
+    final GameRequest gameRequest = GameRequest.builder()
+        .playerSouth("Julio")
+        .playerNorth("Manuel")
+        .build();
+    // WHEN create Game
+    final String requestContent = this.objectMapper.writeValueAsString(gameRequest);
+    MvcResult createdGameResult = this.mockMvc
+        .perform(post(Endpoints.GAMES).contentType(APPLICATION_JSON).content(requestContent))
+        .andExpect(status().is(201))
+        .andReturn();
+    final Game createdGame = deserializeResponse(createdGameResult);
+    // THEN verify the Game data
+    assertThat(createdGame).extracting(Game::getId).isNotNull();
+    assertThat(createdGame).extracting(Game::getStatus).isEqualTo(Status.STARTED);
+  }
+
+  @Test
+  public void givenPlayer_andPit_whenMove_thenReturnNewBoard() throws Exception {
+    // GIVEN a Player and a move (a Pit number)
+    final UUID gameId = new UUID(0, 0);
+    final MoveRequest moveRequest = MoveRequest.builder()
+        .pit(0)
+        .build();
+    // WHEN move
+    final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
+    final MvcResult moveMadeResult = this.mockMvc.perform(
+        patch(Endpoints.GAMES + "/" + gameId + "/players/" + PlayerType.SOUTH.name())
+            .contentType(APPLICATION_JSON).content(requestContent))
+        .andExpect(status().isOk())
+        .andReturn();
+    // THEN get the new Board for the Game
+  }
+
+  private Game deserializeResponse(MvcResult createdGameResult)
+      throws UnsupportedEncodingException, JsonProcessingException {
+    final String responseAsString = createdGameResult.getResponse().getContentAsString();
+    return this.objectMapper.readValue(responseAsString, Game.class);
   }
 }
