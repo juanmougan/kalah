@@ -28,6 +28,8 @@ public class GameControllerIT {
   @Autowired
   private ObjectMapper objectMapper;
 
+  public static final String DRAWN_GAME_ID = "00000000-0000-0000-0000-000000000001";
+
   @Test
   public void givenGameId_whenGetById_thenReturnItsStatus() throws Exception {
     // GIVEN an id
@@ -78,6 +80,24 @@ public class GameControllerIT {
         .andExpect(status().isOk())
         .andReturn();
     // THEN get the new Board for the Game
+    final Game updatedGame = deserializeResponse(moveMadeResult);
+    assertThat(updatedGame).extracting(Game::getId).isEqualTo(gameId);
+    assertThat(updatedGame).extracting(Game::getStatus).isEqualTo(Status.STARTED);
+  }
+
+  @Test
+  public void givenPlayer_andPit_andEndedGame_whenMove_thenReturnBadRequest() throws Exception {
+    // GIVEN a Player and a move (a Pit number)
+    final UUID gameId = UUID.fromString(DRAWN_GAME_ID);
+    final MoveRequest moveRequest = MoveRequest.builder()
+        .pit(0)
+        .build();
+    // WHEN move THEN 400 is returned
+    final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
+    this.mockMvc.perform(
+        patch(Endpoints.GAMES + "/" + gameId + "/players/" + PlayerType.SOUTH.name())
+            .contentType(APPLICATION_JSON).content(requestContent))
+        .andExpect(status().isBadRequest());
   }
 
   private Game deserializeResponse(MvcResult createdGameResult)

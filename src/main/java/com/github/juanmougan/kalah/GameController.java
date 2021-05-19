@@ -31,7 +31,6 @@ public class GameController {
 
   @PatchMapping(Endpoints.GAME_PATCH)
   public Game move(@PathVariable UUID id, @PathVariable PlayerType player, @RequestBody MoveRequest request) {
-    // TODO create service, etc
-    return null;
+    return gameService.move(id, request);
   }
 }

@@ -7,6 +7,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,15 @@ public class Game {
   @Enumerated(EnumType.STRING)
   private Status status;
 
-  // @OneToOne
-  // private Board board;
+  @OneToOne
+  @JoinColumn(name = "board")
+  private Board board;
+
+  public Player nextPlayer() {
+    return this.board.getNextPlayer();
+  }
+
+  public boolean isGameInProgress() {
+    return Status.STARTED.equals(this.status);
+  }
 }
