@@ -57,27 +57,30 @@ public class Board {
 
   public void performMovement(Player player, int pitIndex) {
     List<Pit> pits = player.getPits();
-    int totalSeeds = pits.get(pitIndex).getOwnSeeds();
+    final DecrementedCounter totalSeeds = DecrementedCounter
+        .createForPlayerAndValue(player, pits.get(pitIndex).getOwnSeeds());
     pits.get(pitIndex).setOwnSeeds(0);
     // TODO do-while this (in case I need to reiteare my own again - say if I have > 13 seeds on my starting pit)
-    for (int i = pitIndex + 1; i < pits.size() && totalSeeds > 0; i++) {
-      int currentOwnSeeds = pits.get(i).getOwnSeeds();
+    for (int i = pitIndex + 1; i < pits.size() && totalSeeds.isActive(); i++) {
+      Pit currentPit = pits.get(i);
+      int currentOwnSeeds = currentPit.getOwnSeeds();
+      totalSeeds.decrementInCell(currentPit);
       pits.get(i).setOwnSeeds(currentOwnSeeds + 1);
-      totalSeeds -= 1;
     }
     // Update Kalah
-    if (totalSeeds > 0) {
+    if (totalSeeds.isActive()) {
       Kalah kalah = player.getKalah();
       int seeds = kalah.getSeeds();
+      totalSeeds.decrementInCell(kalah);
       kalah.setSeeds(seeds + 1);
-      totalSeeds -= 1;
     }
     // Update rival pits
     List<Pit> rivalPits = this.getRival(player).getPits();
-    for (int i = 0; i < rivalPits.size() && totalSeeds > 0; i++) {
-      int currentRivalSeeds = rivalPits.get(i).getRivalSeeds();// Rival of rival == own
+    for (int i = 0; i < rivalPits.size() && totalSeeds.isActive(); i++) {
+      Pit currentRivalPit = rivalPits.get(i);
+      int currentRivalSeeds = currentRivalPit.getRivalSeeds();// Rival of rival == own
+      totalSeeds.decrementInCell(currentRivalPit);
       rivalPits.get(i).setRivalSeeds(currentRivalSeeds + 1);
-      totalSeeds -= 1;
     }
     // TODO if totalSeeds > 0 handle own Kalah + rival Pits scenario
   }

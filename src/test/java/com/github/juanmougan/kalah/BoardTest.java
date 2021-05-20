@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -95,6 +96,7 @@ class BoardTest {
   private Player createPlayerWithSeeds(PlayerType playerType, List<Integer> ownSeeds,
       List<Integer> rivalSeeds) {
     Player player = mock(Player.class);
+    when(player.getName()).thenReturn(playerType.name().toLowerCase());
     when(player.getType()).thenReturn(playerType);
     List<Pit> pits = createPits(player, ownSeeds, rivalSeeds);
     when(player.getPits()).thenReturn(pits);

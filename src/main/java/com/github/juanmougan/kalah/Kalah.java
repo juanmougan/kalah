@@ -14,7 +14,7 @@ import org.hibernate.annotations.Type;
 @Data
 @Builder
 @Entity
-public class Kalah {
+public class Kalah implements Cell {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -27,5 +27,13 @@ public class Kalah {
   @Type(type = "uuid-char")
   private UUID id;
 
+  // TODO maybe I need to differentiate own and rival seeds - so the UI can show them with different colors?
   private int seeds;
+
+  @Override
+  public void performAfterTurnAction(Player currentPlayer) {
+    // TODO implement - board.setNextPlayer(currentPlayer)
+    System.out.println("Reached the end of the turn on cell: " + this.toString() + " for player: "
+        + currentPlayer.getName() + ":" + currentPlayer.getType());
+  }
 }

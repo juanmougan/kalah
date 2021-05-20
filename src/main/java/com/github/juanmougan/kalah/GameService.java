@@ -24,11 +24,13 @@ public class GameService {
         .build());
   }
 
+  // TODO add statueses for movements that caused "capture" and "swicth", use that logic here
   public Game move(UUID gameId, MoveRequest moveRequest) {
     final Game currentGame = this.gameRepository.getOne(gameId);
     final Player currentPlayer = currentGame.nextPlayer();
     failIfGameOver(currentGame, currentPlayer);
-    // TODO check valid move, move(done), capture, switch "next", save(done)
+    // TODO check valid move (array out of bounds only?)
+    // TODO move(done), capture, switch "next", save(done)
     currentGame.getBoard().performMovement(currentPlayer, moveRequest.getPit());
     return this.gameRepository.save(currentGame);
   }

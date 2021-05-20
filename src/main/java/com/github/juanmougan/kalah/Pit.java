@@ -21,7 +21,7 @@ import org.hibernate.annotations.Type;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Pit {
+public class Pit implements Cell {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -48,4 +48,13 @@ public class Pit {
 
   @Column(name = "rival_seeds")
   private int rivalSeeds;
+
+  @Override
+  public void performAfterTurnAction(Player currentPlayer) {
+    // TODO implement - IF this.isPlayerCell(currentPlayer) THEN capture/not depending ELSE do nothing
+    System.out.println("Reached the end of the turn on cell: " + this.toString() + " for player: "
+        + currentPlayer.getName() + ":" + currentPlayer.getType());
+  }
 }
+
+// TODO the opposite Pit is: N (6) - 1 - myIndex
