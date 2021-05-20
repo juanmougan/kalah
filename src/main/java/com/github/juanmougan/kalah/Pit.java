@@ -34,6 +34,9 @@ public class Pit {
   @Type(type = "uuid-char")
   private UUID id;
 
+  @Column
+  private int index;
+
   @ManyToOne
   @JoinColumn(name = "owner")
   @JsonIgnore

@@ -22,7 +22,7 @@ public class Kalah {
       name = "UUID",
       strategy = "org.hibernate.id.UUIDGenerator"
   )
-  @Column(name = "game_id", updatable = false, nullable = false)
+  @Column(name = "kalah_id", updatable = false, nullable = false)
   @ColumnDefault("random_uuid()")
   @Type(type = "uuid-char")
   private UUID id;

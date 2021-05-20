@@ -22,18 +22,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class GameControllerIT {
 
+  public static final String STARTED_GAME_ID = "00000000-0000-0000-0000-000000000000";
+  public static final String DRAWN_GAME_ID = "00000000-0000-0000-0000-000000000001";
   @Autowired
   private MockMvc mockMvc;
-
   @Autowired
   private ObjectMapper objectMapper;
-
-  public static final String DRAWN_GAME_ID = "00000000-0000-0000-0000-000000000001";
 
   @Test
   public void givenGameId_whenGetById_thenReturnItsStatus() throws Exception {
     // GIVEN an id
-    final UUID id = new UUID(0, 0);
+    final UUID id = UUID.fromString(STARTED_GAME_ID);
     // WHEN getById
     final MvcResult getByIdResult = this.mockMvc.perform(get(Endpoints.GAMES + "/" + id))
         .andExpect(status().isOk())
@@ -68,9 +67,9 @@ public class GameControllerIT {
   @Test
   public void givenPlayer_andPit_whenMove_thenReturnNewBoard() throws Exception {
     // GIVEN a Player and a move (a Pit number)
-    final UUID gameId = new UUID(0, 0);
+    final UUID gameId = UUID.fromString(STARTED_GAME_ID);
     final MoveRequest moveRequest = MoveRequest.builder()
-        .pit(0)
+        .pit(4)
         .build();
     // WHEN move
     final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
