@@ -43,7 +43,7 @@ class BoardTest {
         .north(north)
         .nextPlayer(south)
         .build();
-    // WHEN a move between our pits is performed
+    // WHEN a move is performed
     board.performMovement(south, 4);
     // THEN update the Board status
     assertThat(board.getSouth().getPits()).extracting(Pit::getOwnSeeds)
@@ -56,7 +56,41 @@ class BoardTest {
         .containsExactly(1, 1, 0, 0, 0, 0);
   }
 
-  // TODO South.own should be == North.rival, THIS IS WRONG!
+  @Test
+  void givenStartingBoard_whenPerformTwoMovements_thenUpdateBoardStatus() {
+    // GIVEN a starting Board
+    Player south = createPlayerWithSeeds(PlayerType.SOUTH, List.of(4, 4, 4, 4, 4, 4),
+        List.of(0, 0, 0, 0, 0, 0));
+    Player north = createPlayerWithSeeds(PlayerType.NORTH, List.of(4, 4, 4, 4, 4, 4),
+        List.of(0, 0, 0, 0, 0, 0));
+    Board board = Board.builder()
+        .south(south)
+        .north(north)
+        .nextPlayer(south)
+        .build();
+    // WHEN South moves
+    board.performMovement(south, 5);
+    // THEN update the Board status
+    assertThat(board.getSouth().getPits()).extracting(Pit::getOwnSeeds)
+        .containsExactly(4, 4, 4, 4, 4, 0);
+    assertThat(board.getSouth())
+        .extracting(Player::getKalah)
+        .extracting(Kalah::getSeeds)
+        .isEqualTo(1);
+    assertThat(board.getNorth().getPits()).extracting(Pit::getRivalSeeds)
+        .containsExactly(1, 1, 1, 0, 0, 0);
+    // AND WHEN North moves
+    board.performMovement(north, 3);
+    // THEN verify the board status
+    assertThat(board.getNorth().getPits()).extracting(Pit::getOwnSeeds)
+        .containsExactly(4, 4, 4, 0, 5, 5);
+    assertThat(board.getNorth())
+        .extracting(Player::getKalah)
+        .extracting(Kalah::getSeeds)
+        .isEqualTo(1);
+    assertThat(board.getSouth().getPits()).extracting(Pit::getRivalSeeds)
+        .containsExactly(1, 0, 0, 0, 0, 0);
+  }
 
   private Player createPlayerWithSeeds(PlayerType playerType, List<Integer> ownSeeds,
       List<Integer> rivalSeeds) {
