@@ -2,5 +2,5 @@ package com.github.juanmougan.kalah;
 
 public interface Cell {
 
-  void performAfterTurnAction(Player currentPlayer);
+  void performAfterTurnAction(Board board);
 }

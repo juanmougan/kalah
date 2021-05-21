@@ -9,16 +9,16 @@ public class DecrementedCounter {
   private int value;
   private Cell lastVisitedCell;
   private Status status;
-  private Player currentPlayer;
+  private Board board;
 
-  private DecrementedCounter(Player player, int value) {
-    this.currentPlayer = player;
+  private DecrementedCounter(Board board, int value) {
+    this.board = board;
     this.value = value;
     this.status = Status.ACTIVE;
   }
 
-  public static DecrementedCounter createForPlayerAndValue(Player player, int initialValue) {
-    return new DecrementedCounter(player, initialValue);
+  public static DecrementedCounter createForBoardAndValue(Board board, int initialValue) {
+    return new DecrementedCounter(board, initialValue);
   }
 
   public void decrementInCell(final Cell currentCell) {
@@ -37,7 +37,7 @@ public class DecrementedCounter {
 
   private void performActionIfFinished() {
     if (!this.isActive()) {
-      this.lastVisitedCell.performAfterTurnAction(this.currentPlayer);
+      this.lastVisitedCell.performAfterTurnAction(this.board);
     }
   }
 

@@ -1,6 +1,7 @@
 package com.github.juanmougan.kalah;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,11 +50,16 @@ public class Pit implements Cell {
   @Column(name = "rival_seeds")
   private int rivalSeeds;
 
+  private boolean isPlayerPit(Player player) {
+    return this.owner.equals(player);
+  }
+
   @Override
-  public void performAfterTurnAction(Player currentPlayer) {
+  public void performAfterTurnAction(Board board) {
     // TODO implement - IF this.isPlayerCell(currentPlayer) THEN capture/not depending ELSE do nothing
     System.out.println("Reached the end of the turn on cell: " + this.toString() + " for player: "
-        + currentPlayer.getName() + ":" + currentPlayer.getType());
+        + board.getNextPlayer() + ":" + board.getNextPlayer().getType());
+    board.flipTurn();
   }
 }
 

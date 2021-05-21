@@ -31,9 +31,8 @@ public class Kalah implements Cell {
   private int seeds;
 
   @Override
-  public void performAfterTurnAction(Player currentPlayer) {
-    // TODO implement - board.setNextPlayer(currentPlayer)
-    System.out.println("Reached the end of the turn on cell: " + this.toString() + " for player: "
-        + currentPlayer.getName() + ":" + currentPlayer.getType());
+  public void performAfterTurnAction(Board board) {
+    // No op here
+    System.out.println("The player will play again");
   }
 }

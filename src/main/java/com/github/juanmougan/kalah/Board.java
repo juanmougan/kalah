@@ -56,9 +56,10 @@ public class Board {
   }
 
   public void performMovement(Player player, int pitIndex) {
+    this.nextPlayer = player;
     List<Pit> pits = player.getPits();
     final DecrementedCounter totalSeeds = DecrementedCounter
-        .createForPlayerAndValue(player, pits.get(pitIndex).getOwnSeeds());
+        .createForBoardAndValue(this, pits.get(pitIndex).getOwnSeeds());
     pits.get(pitIndex).setOwnSeeds(0);
     // TODO do-while this (in case I need to reiteare my own again - say if I have > 13 seeds on my starting pit)
     for (int i = pitIndex + 1; i < pits.size() && totalSeeds.isActive(); i++) {
@@ -90,5 +91,13 @@ public class Board {
       return this.north;
     }
     return this.south;
+  }
+
+  public void flipTurn() {
+    this.setNextPlayer(this.getRival(this.getNextPlayer()));
+  }
+
+  public static int getOppositePitIndex(int startingPitIndex) {
+    return Board.NUMBER_OF_PITS - 1 - startingPitIndex;
   }
 }
