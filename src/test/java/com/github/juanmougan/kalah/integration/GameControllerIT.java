@@ -1,7 +1,13 @@
-package com.github.juanmougan.kalah;
+package com.github.juanmougan.kalah.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.juanmougan.kalah.Endpoints;
+import com.github.juanmougan.kalah.Game;
+import com.github.juanmougan.kalah.GameRequest;
+import com.github.juanmougan.kalah.MoveRequest;
+import com.github.juanmougan.kalah.PlayerType;
+import com.github.juanmougan.kalah.Status;
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

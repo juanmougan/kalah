@@ -44,10 +44,16 @@ public class Game {
   private Board board;
 
   public Player nextPlayer() {
-    return this.board.getNextPlayer();
+    return this.board.getCurrentPlayer();
   }
 
   public boolean isGameInProgress() {
     return Status.STARTED.equals(this.status);
+  }
+
+  public void verifyGameOver() {
+    if (this.getBoard().getCurrentPlayer().hasNoSeedsInOwnPits()) {
+      this.setStatus(this.getBoard().handleGameOver());
+    }
   }
 }

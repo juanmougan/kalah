@@ -1,20 +1,36 @@
-package com.github.juanmougan.kalah;
+package com.github.juanmougan.kalah.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.github.juanmougan.kalah.Board;
+import com.github.juanmougan.kalah.Kalah;
+import com.github.juanmougan.kalah.Pit;
+import com.github.juanmougan.kalah.Player;
+import com.github.juanmougan.kalah.PlayerType;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class PitTest {
+
+  private static Player mockPlayer(PlayerType playerType) {
+    final Player player = mock(Player.class);
+    when(player.getName()).thenReturn(playerType.name().toLowerCase());
+    when(player.getType()).thenReturn(playerType);
+    doCallRealMethod().when(player).setPits(any());
+    when(player.getPits()).thenCallRealMethod();
+    return player;
+  }
+
+  private static Player mockPlayer(PlayerType playerType, Kalah kalah) {
+    Player player = mockPlayer(playerType);
+    when(player.getKalah()).thenReturn(kalah);
+    return player;
+  }
 
   @Test
   void givenIsRivalEmptyPit_whenPerformAfterTurnAction_thenNoActionAndSwitchTurn() {
@@ -22,7 +38,7 @@ class PitTest {
     final Player ownerSouth = mockPlayer(PlayerType.SOUTH);
     final Player rivalNorth = mockPlayer(PlayerType.NORTH);
 
-    final Pit pit = Pit.builder()
+    final Pit rivalPit = Pit.builder()
         .id(UUID.randomUUID())
         .index(3)
         .owner(rivalNorth)
@@ -30,20 +46,20 @@ class PitTest {
         .rivalSeeds(0)
         .build();
 
-    ownerSouth.setPits(List.of(pit));
+    rivalNorth.setPits(List.of(rivalPit));
 
     final Board board = Board.builder()
         .id(UUID.randomUUID())
-        .nextPlayer(ownerSouth)
+        .currentPlayer(ownerSouth)
         .south(ownerSouth)
         .north(rivalNorth)
         .build();
 
     // WHEN perform action
-    pit.performAfterTurnAction(board);
+    rivalPit.performAfterTurnAction(board);
 
     // THEN do not capture, switch turn
-    assertThat(board.getNextPlayer()).isEqualTo(rivalNorth);
+    assertThat(board.getCurrentPlayer()).isEqualTo(rivalNorth);
   }
 
   @Test
@@ -52,7 +68,7 @@ class PitTest {
     final Player ownerSouth = mockPlayer(PlayerType.SOUTH);
     final Player rivalNorth = mockPlayer(PlayerType.NORTH);
 
-    final Pit pit = Pit.builder()
+    final Pit rivalPit = Pit.builder()
         .id(UUID.randomUUID())
         .index(3)
         .owner(rivalNorth)
@@ -60,20 +76,20 @@ class PitTest {
         .rivalSeeds(7)
         .build();
 
-    ownerSouth.setPits(List.of(pit));
+    rivalNorth.setPits(List.of(rivalPit));
 
     final Board board = Board.builder()
         .id(UUID.randomUUID())
-        .nextPlayer(ownerSouth)
+        .currentPlayer(ownerSouth)
         .south(ownerSouth)
         .north(rivalNorth)
         .build();
 
     // WHEN perform action
-    pit.performAfterTurnAction(board);
+    rivalPit.performAfterTurnAction(board);
 
     // THEN do not capture, switch turn
-    assertThat(board.getNextPlayer()).isEqualTo(rivalNorth);
+    assertThat(board.getCurrentPlayer()).isEqualTo(rivalNorth);
   }
 
   @Test
@@ -82,7 +98,7 @@ class PitTest {
     final Player ownerSouth = mockPlayer(PlayerType.SOUTH);
     final Player rivalNorth = mockPlayer(PlayerType.NORTH);
 
-    final Pit pit = Pit.builder()
+    final Pit ownPit = Pit.builder()
         .id(UUID.randomUUID())
         .index(3)
         .owner(ownerSouth)
@@ -90,44 +106,40 @@ class PitTest {
         .rivalSeeds(7)
         .build();
 
-    ownerSouth.setPits(List.of(pit));
+    ownerSouth.setPits(List.of(ownPit));
 
     final Board board = Board.builder()
         .id(UUID.randomUUID())
-        .nextPlayer(ownerSouth)
+        .currentPlayer(ownerSouth)
         .south(ownerSouth)
         .north(rivalNorth)
         .build();
 
     // WHEN perform action
-    pit.performAfterTurnAction(board);
+    ownPit.performAfterTurnAction(board);
 
     // THEN do not capture, switch turn
-    assertThat(board.getNextPlayer()).isEqualTo(rivalNorth);
+    assertThat(board.getCurrentPlayer()).isEqualTo(rivalNorth);
   }
 
-  // TODO add own pit empty, and opposite pit epty
   @Test
   void givenIsEmptyOwnPit_whenPerformAfterTurnAction_thenPerformActionAndSwitchTurn() {
     // GIVEN a Pit for the rival with both theirs and ours seeds
-    final int NORTH_SEEDS_IN_OPPOSITE_PIT = 5;
-    final int SOUTH_SEEDS_IN_OPPOSITE_PIT = 3;
+    final int NORTH_SEEDS_IN_OPPOSITE_PIT = 3;
     final int SEEDS_IN_KALAH = 4;
     final int STARTING_PIT_INDEX = 3;
     final int SEEDS_IN_STARTING_PIT = 2;
     final int endingPitIndex = STARTING_PIT_INDEX + SEEDS_IN_STARTING_PIT;
-    final int expectedSeedsInKalah = NORTH_SEEDS_IN_OPPOSITE_PIT + SOUTH_SEEDS_IN_OPPOSITE_PIT + SEEDS_IN_KALAH + 1;
+    final int expectedSeedsInKalah = NORTH_SEEDS_IN_OPPOSITE_PIT + SEEDS_IN_KALAH + 1;
     final int oppositePitIndex = Board.getOppositePitIndex(endingPitIndex);
-    final Player ownerSouth = mockPlayer(PlayerType.SOUTH);
+
+    final Kalah southKalah = Kalah.builder()
+        .id(UUID.randomUUID())
+        .seeds(SEEDS_IN_KALAH)
+        .build();
+    final Player ownerSouth = mockPlayer(PlayerType.SOUTH, southKalah);
     final Player rivalNorth = mockPlayer(PlayerType.NORTH);
 
-    final Pit startingPit = Pit.builder()
-        .id(UUID.randomUUID())
-        .index(STARTING_PIT_INDEX)
-        .owner(ownerSouth)
-        .ownSeeds(SEEDS_IN_STARTING_PIT)
-        .rivalSeeds(0)
-        .build();
     final Pit endingPit = Pit.builder()
         .id(UUID.randomUUID())
         .index(endingPitIndex)
@@ -143,38 +155,86 @@ class PitTest {
         .rivalSeeds(0)
         .build();
 
-    ownerSouth.setPits(List.of(startingPit, endingPit));
+    ownerSouth.setPits(List.of(endingPit));
     rivalNorth.setPits(List.of(oppositeEndingPit));
 
     final Board board = Board.builder()
         .id(UUID.randomUUID())
-        .nextPlayer(ownerSouth)
+        .currentPlayer(ownerSouth)
         .south(ownerSouth)
         .north(rivalNorth)
         .build();
 
     // WHEN perform action
-    startingPit.performAfterTurnAction(board);
+    endingPit.performAfterTurnAction(board);
 
     // THEN capture and switch turn
-    assertThat(board.getNextPlayer()).isEqualTo(rivalNorth);
-    // assert startingPit no longer has own seeds
-    Pit actualStartingPit = board.getSouth().getPits().stream().filter(p -> p.getIndex() == STARTING_PIT_INDEX)
-        .findFirst().orElseThrow();
-    // TODO implement this onwards
-    assertThat(actualStartingPit.getOwnSeeds()).isZero();
-    // assert endingPit has one seed
-    Pit actualEndingPit = board.getSouth().getPits().stream().filter(p -> p.getIndex() == endingPitIndex)
-        .findFirst().orElseThrow();
-    assertThat(actualEndingPit.getOwnSeeds()).isOne();
-    assertThat(actualEndingPit.getRivalSeeds()).isZero();
-    // assert opposite is empty
-    Pit actualOppositePit = board.getNorth().getPits().stream().filter(p -> p.getIndex() == oppositePitIndex)
+    assertThat(board.getCurrentPlayer()).isEqualTo(rivalNorth);
+    assertThat(endingPit.getOwnSeeds()).isZero();
+    Pit actualOppositePit = board.getNorth().getPits().stream()
+        .filter(p -> p.getIndex() == oppositePitIndex)
         .findFirst().orElseThrow();
     assertThat(actualOppositePit.getOwnSeeds()).isZero();
     assertThat(actualOppositePit.getRivalSeeds()).isZero();
-    // assert Kalah has sumed all the seeds
-    assertThat(board).extracting(Board::getSouth).extracting(Player::getKalah).extracting(Kalah::getSeeds).isEqualTo(expectedSeedsInKalah);
+    assertThat(board).extracting(Board::getSouth).extracting(Player::getKalah)
+        .extracting(Kalah::getSeeds).isEqualTo(expectedSeedsInKalah);
+  }
+
+  @Test
+  void givenIsEmptyOwnPit_andEmptyOppositePit_whenPerformAfterTurnAction_thenPerformActionAndDoNotCaptureAndSwitchTurn() {
+    // GIVEN a Pit for the rival with both theirs and ours seeds
+    final int NORTH_SEEDS_IN_OPPOSITE_PIT = 3;
+    final int SEEDS_IN_KALAH = 4;
+    final int STARTING_PIT_INDEX = 3;
+    final int SEEDS_IN_STARTING_PIT = 2;
+    final int endingPitIndex = STARTING_PIT_INDEX + SEEDS_IN_STARTING_PIT;
+    final int expectedSeedsInKalah = NORTH_SEEDS_IN_OPPOSITE_PIT + SEEDS_IN_KALAH + 1;
+    final int oppositePitIndex = Board.getOppositePitIndex(endingPitIndex);
+
+    final Kalah southKalah = Kalah.builder()
+        .id(UUID.randomUUID())
+        .seeds(SEEDS_IN_KALAH)
+        .build();
+    final Player ownerSouth = mockPlayer(PlayerType.SOUTH, southKalah);
+    final Player rivalNorth = mockPlayer(PlayerType.NORTH);
+
+    final Pit endingPit = Pit.builder()
+        .id(UUID.randomUUID())
+        .index(endingPitIndex)
+        .owner(ownerSouth)
+        .ownSeeds(0)
+        .rivalSeeds(0)
+        .build();
+    final Pit oppositeEndingPit = Pit.builder()
+        .id(UUID.randomUUID())
+        .index(oppositePitIndex)
+        .owner(rivalNorth)
+        .ownSeeds(0)
+        .rivalSeeds(0)
+        .build();
+
+    ownerSouth.setPits(List.of(endingPit));
+    rivalNorth.setPits(List.of(oppositeEndingPit));
+
+    final Board board = Board.builder()
+        .id(UUID.randomUUID())
+        .currentPlayer(ownerSouth)
+        .south(ownerSouth)
+        .north(rivalNorth)
+        .build();
+
+    // WHEN perform action
+    endingPit.performAfterTurnAction(board);
+
+    // THEN do not capture, switch turn
+    assertThat(board.getCurrentPlayer()).isEqualTo(rivalNorth);
+    assertThat(endingPit.getOwnSeeds()).isZero();
+    Pit actualOppositePit = board.getNorth().getPits().stream()
+        .filter(p -> p.getIndex() == oppositePitIndex)
+        .findFirst().orElseThrow();
+    assertThat(actualOppositePit.getRivalSeeds()).isZero();
+    assertThat(board).extracting(Board::getSouth).extracting(Player::getKalah)
+        .extracting(Kalah::getSeeds).isEqualTo(SEEDS_IN_KALAH);
   }
 
   @Test
@@ -192,7 +252,7 @@ class PitTest {
 
     final Board board = Board.builder()
         .id(UUID.randomUUID())
-        .nextPlayer(ownerSouth)
+        .currentPlayer(ownerSouth)
         .south(ownerSouth)
         .north(rivalNorth)
         .build();
@@ -201,7 +261,7 @@ class PitTest {
     kalah.performAfterTurnAction(board);
 
     // THEN do not capture, do not switch turn
-    assertThat(board.getNextPlayer()).isEqualTo(ownerSouth);
+    assertThat(board.getCurrentPlayer()).isEqualTo(ownerSouth);
   }
 
   @Test
@@ -219,7 +279,7 @@ class PitTest {
 
     final Board board = Board.builder()
         .id(UUID.randomUUID())
-        .nextPlayer(ownerSouth)
+        .currentPlayer(ownerSouth)
         .south(ownerSouth)
         .north(rivalNorth)
         .build();
@@ -228,15 +288,6 @@ class PitTest {
     kalah.performAfterTurnAction(board);
 
     // THEN do not capture, do not switch turn
-    assertThat(board.getNextPlayer()).isEqualTo(ownerSouth);
-  }
-
-  private static Player mockPlayer(PlayerType playerType) {
-    final Player player = mock(Player.class);
-    when(player.getName()).thenReturn(playerType.name().toLowerCase());
-    when(player.getType()).thenReturn(playerType);
-    doCallRealMethod().when(player).setPits(any());
-    when(player.getPits()).thenCallRealMethod();
-    return player;
+    assertThat(board.getCurrentPlayer()).isEqualTo(ownerSouth);
   }
 }

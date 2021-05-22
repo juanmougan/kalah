@@ -30,8 +30,8 @@ public class GameService {
     final Player currentPlayer = currentGame.nextPlayer();
     failIfGameOver(currentGame, currentPlayer);
     // TODO check valid move (array out of bounds only?)
-    // TODO move(done), capture, switch "next", save(done)
     currentGame.getBoard().performMovement(currentPlayer, moveRequest.getPit());
+    currentGame.verifyGameOver();
     return this.gameRepository.save(currentGame);
   }
 

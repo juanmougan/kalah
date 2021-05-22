@@ -35,4 +35,8 @@ public class Kalah implements Cell {
     // No op here
     System.out.println("The player will play again");
   }
+
+  public void addSeeds(int seedsToAdd) {
+    this.seeds += seedsToAdd;
+  }
 }

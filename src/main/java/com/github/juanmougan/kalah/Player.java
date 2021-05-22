@@ -2,6 +2,7 @@ package com.github.juanmougan.kalah;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -56,5 +57,19 @@ public class Player {
     return this.pits.stream()
         .map(Pit::getOwnSeeds)
         .anyMatch(seeds -> seeds != 0);
+  }
+
+  public boolean hasNoSeedsInOwnPits() {
+    return this.pits.stream()
+        .map(Pit::getOwnSeeds)
+        .noneMatch(s -> s.equals(0));
+  }
+
+  public int countAllRivalSeedsInOwnPits() {
+    // It will fit into an int :)
+    return this.getPits().stream()
+        .map(Pit::getRivalSeeds)
+        .mapToInt(Integer::intValue)
+        .sum();
   }
 }
