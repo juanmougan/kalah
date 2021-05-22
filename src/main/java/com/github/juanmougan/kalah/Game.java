@@ -43,7 +43,7 @@ public class Game {
   @JoinColumn(name = "board")
   private Board board;
 
-  public Player nextPlayer() {
+  public Player currentPlayer() {
     return this.board.getCurrentPlayer();
   }
 

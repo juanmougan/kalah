@@ -2,13 +2,13 @@ package com.github.juanmougan.kalah;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
@@ -51,6 +51,7 @@ public class Player {
   private List<Pit> pits;
 
   @OneToOne
+  @JoinColumn(name = "kalah_id", referencedColumnName = "kalah_id")
   private Kalah kalah;
 
   public boolean hasLegalMoves() {
@@ -66,7 +67,6 @@ public class Player {
   }
 
   public int countAllRivalSeedsInOwnPits() {
-    // It will fit into an int :)
     return this.getPits().stream()
         .map(Pit::getRivalSeeds)
         .mapToInt(Integer::intValue)

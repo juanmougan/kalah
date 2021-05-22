@@ -1,5 +1,8 @@
 package com.github.juanmougan.kalah;
 
+import static com.github.juanmougan.kalah.PlayerType.NORTH;
+import static com.github.juanmougan.kalah.PlayerType.SOUTH;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.UUID;
@@ -51,22 +54,11 @@ public class Board {
   @JsonProperty("next_player")
   private Player currentPlayer;
 
-  public static Board newInitialBoard(String southPlayerName, String northPlayerName) {
-    final Player newSouthPlayer = Player.builder().build();   // TODO complete this
-    return Board.builder()
-        .id(UUID.randomUUID())
-        .south(newSouthPlayer)
-        .north(Player.builder().build()) // TODO complete this
-        .currentPlayer(newSouthPlayer)
-        .build();
-  }
-
   public static int getOppositePitIndex(int startingPitIndex) {
     return Board.NUMBER_OF_PITS - 1 - startingPitIndex;
   }
 
   public void performMovement(Player player, int pitIndex) {
-    this.currentPlayer = player;
     List<Pit> pits = player.getPits();
     final DecrementedCounter totalSeeds = DecrementedCounter
         .createForBoardAndValue(this, pits.get(pitIndex).getOwnSeeds());

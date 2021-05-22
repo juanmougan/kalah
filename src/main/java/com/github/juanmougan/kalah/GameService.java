@@ -13,6 +13,8 @@ public class GameService {
 
   private final GameRepository gameRepository;
 
+  private final BoardService boardService;
+
   public Game getById(UUID id) {
     return gameRepository.getOne(id);
   }
@@ -20,14 +22,16 @@ public class GameService {
   public Game create(GameRequest gameRequest) {
     return gameRepository.save(Game.builder()
         .status(Status.STARTED)
-        .board(Board.newInitialBoard(gameRequest.getPlayerSouth(), gameRequest.getPlayerNorth()))
+        .board(this.boardService.createInitialBoard(
+            gameRequest.getPlayerSouth(),
+            gameRequest.getPlayerNorth()))
         .build());
   }
 
   // TODO add statueses for movements that caused "capture" and "swicth", use that logic here
   public Game move(UUID gameId, MoveRequest moveRequest) {
     final Game currentGame = this.gameRepository.getOne(gameId);
-    final Player currentPlayer = currentGame.nextPlayer();
+    final Player currentPlayer = currentGame.currentPlayer();
     failIfGameOver(currentGame, currentPlayer);
     // TODO check valid move (array out of bounds only?)
     currentGame.getBoard().performMovement(currentPlayer, moveRequest.getPit());

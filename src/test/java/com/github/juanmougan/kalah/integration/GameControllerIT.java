@@ -1,14 +1,24 @@
 package com.github.juanmougan.kalah.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.juanmougan.kalah.Endpoints;
 import com.github.juanmougan.kalah.Game;
 import com.github.juanmougan.kalah.GameRequest;
 import com.github.juanmougan.kalah.MoveRequest;
+import com.github.juanmougan.kalah.Pit;
+import com.github.juanmougan.kalah.Player;
 import com.github.juanmougan.kalah.PlayerType;
 import com.github.juanmougan.kalah.Status;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +26,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,9 +76,10 @@ public class GameControllerIT {
   @Test
   public void givenPlayer_andPit_whenMove_thenReturnNewBoard() throws Exception {
     // GIVEN a Player and a move (a Pit number)
+    final int startingIndex = 3;
     final UUID gameId = UUID.fromString(STARTED_GAME_ID);
     final MoveRequest moveRequest = MoveRequest.builder()
-        .pit(4)
+        .pit(startingIndex)
         .build();
     // WHEN move
     final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
@@ -88,6 +92,12 @@ public class GameControllerIT {
     final Game updatedGame = deserializeResponse(moveMadeResult);
     assertThat(updatedGame).extracting(Game::getId).isEqualTo(gameId);
     assertThat(updatedGame).extracting(Game::getStatus).isEqualTo(Status.STARTED);
+    final List<Pit> southPits = updatedGame.getBoard().getSouth().getPits();
+    assertThat(southPits.get(startingIndex)).extracting(Pit::getOwnSeeds).isEqualTo(0);
+    assertThat(southPits.get(startingIndex + 1)).extracting(Pit::getOwnSeeds).isEqualTo(1);
+    assertThat(southPits.get(startingIndex + 2)).extracting(Pit::getOwnSeeds).isEqualTo(1);
+    assertThat(updatedGame).extracting(Game::currentPlayer).extracting(Player::getType)
+        .isEqualTo(PlayerType.NORTH);
   }
 
   @Test
