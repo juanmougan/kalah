@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class MoveRequest {
 
   private int pit;
+  PlayerType playerType;
 }

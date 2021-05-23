@@ -57,7 +57,7 @@ class PlayerTest {
   }
 
   @Test
-  public void givenNoOwnSeeds_whenHasNoSeedsInOwnPits_thenReturnFalse() {
+  public void givenNoOwnSeeds_whenHasNoSeedsInOwnPits_thenReturnTrue() {
     // GIVEN
     final Player south = Player.builder()
         .type(SOUTH)
@@ -68,11 +68,11 @@ class PlayerTest {
         Pit.builder().owner(south).ownSeeds(0).rivalSeeds(6).build()
     ));
     // WHEN hasSeeds THEN return true
-    assertThat(south.hasNoSeedsInOwnPits()).isFalse();
+    assertThat(south.hasNoSeedsInOwnPits()).isTrue();
   }
 
   @Test
-  public void givenRivalSeedsOnly_whenHasNoSeedsInOwnPits_thenReturnFalse() {
+  public void givenRivalSeedsOnly_whenHasNoSeedsInOwnPits_thenReturnTrue() {
     // GIVEN
     final Player south = Player.builder()
         .type(SOUTH)
@@ -81,7 +81,7 @@ class PlayerTest {
         Pit.builder().owner(south).ownSeeds(0).rivalSeeds(5).build()
     ));
     // WHEN hasSeeds THEN return false
-    assertThat(south.hasNoSeedsInOwnPits()).isFalse();
+    assertThat(south.hasNoSeedsInOwnPits()).isTrue();
   }
 
   @Test

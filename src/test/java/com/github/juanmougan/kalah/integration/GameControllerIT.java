@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.juanmougan.kalah.Board;
 import com.github.juanmougan.kalah.Endpoints;
 import com.github.juanmougan.kalah.Game;
 import com.github.juanmougan.kalah.GameRequest;
@@ -20,6 +21,7 @@ import com.github.juanmougan.kalah.Status;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,12 +35,13 @@ public class GameControllerIT {
 
   public static final String STARTED_GAME_ID = "00000000-0000-0000-0000-000000000000";
   public static final String DRAWN_GAME_ID = "00000000-0000-0000-0000-000000000001";
+  public static final String LAST_MOVE_GAME_ID = "00000000-0000-0000-0000-000000000020";
   @Autowired
   private MockMvc mockMvc;
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Test
+  @Disabled("Will delete this endpoint")
   public void givenGameId_whenGetById_thenReturnItsStatus() throws Exception {
     // GIVEN an id
     final UUID id = UUID.fromString(STARTED_GAME_ID);
@@ -57,9 +60,11 @@ public class GameControllerIT {
   public void givenGameRequestData_whenCreateGame_thenCreateIt_andReturnItsData()
       throws Exception {
     // GIVEN some Game data
+    final String SOUTH_NAME = "Julio";
+    final String NORTH_NAME = "Manuel";
     final GameRequest gameRequest = GameRequest.builder()
-        .playerSouth("Julio")
-        .playerNorth("Manuel")
+        .playerSouth(SOUTH_NAME)
+        .playerNorth(NORTH_NAME)
         .build();
     // WHEN create Game
     final String requestContent = this.objectMapper.writeValueAsString(gameRequest);
@@ -71,8 +76,12 @@ public class GameControllerIT {
     // THEN verify the Game data
     assertThat(createdGame).extracting(Game::getId).isNotNull();
     assertThat(createdGame).extracting(Game::getStatus).isEqualTo(Status.STARTED);
+    assertThat(createdGame).extracting(Game::currentPlayer).extracting(Player::getName).isEqualTo(SOUTH_NAME);
+    assertThat(createdGame).extracting(Game::getBoard).extracting(Board::getSouth).extracting(Player::getName).isEqualTo(SOUTH_NAME);
+    assertThat(createdGame).extracting(Game::getBoard).extracting(Board::getNorth).extracting(Player::getName).isEqualTo(NORTH_NAME);
   }
 
+  // TODO add test that if move ends on Kalah, don't flip turns
   @Test
   public void givenPlayer_andPit_whenMove_thenReturnNewBoard() throws Exception {
     // GIVEN a Player and a move (a Pit number)
@@ -80,11 +89,12 @@ public class GameControllerIT {
     final UUID gameId = UUID.fromString(STARTED_GAME_ID);
     final MoveRequest moveRequest = MoveRequest.builder()
         .pit(startingIndex)
+        .playerType(PlayerType.SOUTH)
         .build();
     // WHEN move
     final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
     final MvcResult moveMadeResult = this.mockMvc.perform(
-        patch(Endpoints.GAMES + "/" + gameId + "/players/" + PlayerType.SOUTH.name())
+        patch(Endpoints.GAMES + "/" + gameId)
             .contentType(APPLICATION_JSON).content(requestContent))
         .andExpect(status().isOk())
         .andReturn();
@@ -106,13 +116,51 @@ public class GameControllerIT {
     final UUID gameId = UUID.fromString(DRAWN_GAME_ID);
     final MoveRequest moveRequest = MoveRequest.builder()
         .pit(0)
+        .playerType(PlayerType.SOUTH)
         .build();
     // WHEN move THEN 400 is returned
     final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
     this.mockMvc.perform(
-        patch(Endpoints.GAMES + "/" + gameId + "/players/" + PlayerType.SOUTH.name())
+        patch(Endpoints.GAMES + "/" + gameId)
             .contentType(APPLICATION_JSON).content(requestContent))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void givenPlayer_andPit_andNotMyTurn_whenMove_thenReturnBadRequest() throws Exception {
+    // GIVEN a Player and a move (a Pit number)
+    final UUID gameId = UUID.fromString(STARTED_GAME_ID);
+    final MoveRequest moveRequest = MoveRequest.builder()
+        .pit(0)
+        .playerType(PlayerType.NORTH)
+        .build();
+    // WHEN move THEN 400 is returned
+    final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
+    this.mockMvc.perform(
+        patch(Endpoints.GAMES + "/" + gameId)
+            .contentType(APPLICATION_JSON).content(requestContent))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void givenNorthLastMove_whenMove_thenGameOver_andSouthWins() throws Exception {
+    // GIVEN a game about to end
+    final UUID lastMoveGameId = UUID.fromString(LAST_MOVE_GAME_ID);
+    final MoveRequest moveRequest = MoveRequest.builder()
+        .pit(5)
+        .playerType(PlayerType.NORTH)
+        .build();
+    final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
+    // WHEN north moves
+    final MvcResult moveMadeResult = this.mockMvc.perform(
+        patch(Endpoints.GAMES + "/" + lastMoveGameId)
+            .contentType(APPLICATION_JSON).content(requestContent))
+        .andExpect(status().isOk())
+        .andReturn();
+    // THEN
+    final Game gameOver = deserializeResponse(moveMadeResult);
+    assertThat(gameOver).extracting(Game::getId).isEqualTo(lastMoveGameId);
+    assertThat(gameOver).extracting(Game::getStatus).isEqualTo(Status.SOUTH_WINS);
   }
 
   private Game deserializeResponse(MvcResult createdGameResult)

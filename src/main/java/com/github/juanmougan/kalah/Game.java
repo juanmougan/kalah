@@ -52,7 +52,7 @@ public class Game {
   }
 
   public void verifyGameOver() {
-    if (this.getBoard().getCurrentPlayer().hasNoSeedsInOwnPits()) {
+    if (this.getBoard().getSouth().hasNoSeedsInOwnPits() || this.getBoard().getNorth().hasNoSeedsInOwnPits()) {
       this.setStatus(this.getBoard().handleGameOver());
     }
   }

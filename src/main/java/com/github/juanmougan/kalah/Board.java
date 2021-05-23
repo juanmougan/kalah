@@ -106,7 +106,7 @@ public class Board {
 
   public Status handleGameOver() {
     Player rival = this.getRival(this.currentPlayer);
-    rival.getKalah().addSeeds(rival.countAllRivalSeedsInOwnPits());
+    rival.getKalah().addSeeds(this.currentPlayer.countAllRivalSeedsInOwnPits());
     // TODO maybe capture them for UI purposes?
     if (rival.getKalah().getSeeds() > this.currentPlayer.getKalah().getSeeds()) {
       return rival.getType().getWinner();

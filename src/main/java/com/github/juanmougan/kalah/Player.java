@@ -63,7 +63,7 @@ public class Player {
   public boolean hasNoSeedsInOwnPits() {
     return this.pits.stream()
         .map(Pit::getOwnSeeds)
-        .noneMatch(s -> s.equals(0));
+        .allMatch(s -> s.equals(0));
   }
 
   public int countAllRivalSeedsInOwnPits() {
