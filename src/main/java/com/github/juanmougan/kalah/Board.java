@@ -50,8 +50,6 @@ public class Board {
   private Player north;
 
   @OneToOne
-  @JoinColumn(name = "current_player")
-  @JsonProperty("next_player")
   private Player currentPlayer;
 
   public static int getOppositePitIndex(int startingPitIndex) {
