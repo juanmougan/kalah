@@ -1,11 +1,16 @@
 package com.github.juanmougan.kalah;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GameRequest {
-  String playerSouth;
-  String playerNorth;
+
+  private String playerSouth;
+  private String playerNorth;
 }

@@ -43,11 +43,17 @@ public class Game {
   @JoinColumn(name = "board")
   private Board board;
 
-  public Player nextPlayer() {
-    return this.board.getNextPlayer();
+  public Player currentPlayer() {
+    return this.board.getCurrentPlayer();
   }
 
   public boolean isGameInProgress() {
     return Status.STARTED.equals(this.status);
+  }
+
+  public void verifyGameOver() {
+    if (this.getBoard().getSouth().hasNoSeedsInOwnPits() || this.getBoard().getNorth().hasNoSeedsInOwnPits()) {
+      this.setStatus(this.getBoard().handleGameOver());
+    }
   }
 }

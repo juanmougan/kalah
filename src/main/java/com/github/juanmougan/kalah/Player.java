@@ -8,14 +8,13 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.GenericGenerator;
@@ -52,11 +51,25 @@ public class Player {
   private List<Pit> pits;
 
   @OneToOne
+  @JoinColumn(name = "kalah_id", referencedColumnName = "kalah_id")
   private Kalah kalah;
 
   public boolean hasLegalMoves() {
     return this.pits.stream()
         .map(Pit::getOwnSeeds)
         .anyMatch(seeds -> seeds != 0);
+  }
+
+  public boolean hasNoSeedsInOwnPits() {
+    return this.pits.stream()
+        .map(Pit::getOwnSeeds)
+        .allMatch(s -> s.equals(0));
+  }
+
+  public int countAllRivalSeedsInOwnPits() {
+    return this.getPits().stream()
+        .map(Pit::getRivalSeeds)
+        .mapToInt(Integer::intValue)
+        .sum();
   }
 }

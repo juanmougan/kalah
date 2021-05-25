@@ -21,7 +21,7 @@ import org.hibernate.annotations.Type;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Pit {
+public class Pit implements Cell {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -48,4 +48,39 @@ public class Pit {
 
   @Column(name = "rival_seeds")
   private int rivalSeeds;
+
+  private boolean isPlayerPit(Player player) {
+    return this.owner.equals(player);
+  }
+
+  private boolean isEmpty() {
+    return ownSeeds == 0 && rivalSeeds == 0;
+  }
+
+  public int acceptCapture() {
+    int originalSeeds = this.ownSeeds;
+    this.setOwnSeeds(0);
+    return originalSeeds;
+  }
+
+  @Override
+  public void performAfterTurnAction(Board board) {
+    Player currentPlayer = board.getCurrentPlayer();
+    System.out.println("Reached the end of the turn on cell: " + this.toString() + " for player: "
+        + currentPlayer + ":" + currentPlayer.getType());
+    if (this.isPlayerPit(currentPlayer) && this.isEmpty()) {
+      int oppositePitIndex = Board.getOppositePitIndex(this.getIndex());
+      Pit rivalPit = board.getRivalPits(currentPlayer).stream()
+          .filter(p -> p.getIndex() == oppositePitIndex)
+          .findFirst()
+          .orElseThrow(() -> new IllegalMovementException(
+              String.format("Pit with index %d not found", oppositePitIndex)));
+      int capturedSeeds = rivalPit.acceptCapture();
+      if (capturedSeeds > 0) {
+        this.setOwnSeeds(0);
+        currentPlayer.getKalah().addSeeds(capturedSeeds + 1);
+      }
+    }
+    board.flipTurn();
+  }
 }
