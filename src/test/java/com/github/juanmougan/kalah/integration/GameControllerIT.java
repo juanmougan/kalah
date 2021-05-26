@@ -13,6 +13,7 @@ import com.github.juanmougan.kalah.Board;
 import com.github.juanmougan.kalah.Endpoints;
 import com.github.juanmougan.kalah.Game;
 import com.github.juanmougan.kalah.GameRequest;
+import com.github.juanmougan.kalah.Kalah;
 import com.github.juanmougan.kalah.MoveRequest;
 import com.github.juanmougan.kalah.Pit;
 import com.github.juanmougan.kalah.Player;
@@ -26,22 +27,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+//@Disabled("Is the DB being polluted?")
+@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 public class GameControllerIT {
 
   public static final String STARTED_GAME_ID = "00000000-0000-0000-0000-000000000000";
   public static final String DRAWN_GAME_ID = "00000000-0000-0000-0000-000000000001";
   public static final String LAST_MOVE_GAME_ID = "00000000-0000-0000-0000-000000000020";
+  public static final String WILL_CAPTURE_GAME_ID = "00000000-0000-0000-0000-000000000100";
   @Autowired
   private MockMvc mockMvc;
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Disabled("Will delete this endpoint")
+  //@Disabled("Will delete this endpoint")
   public void givenGameId_whenGetById_thenReturnItsStatus() throws Exception {
     // GIVEN an id
     final UUID id = UUID.fromString(STARTED_GAME_ID);
@@ -76,13 +82,17 @@ public class GameControllerIT {
     // THEN verify the Game data
     assertThat(createdGame).extracting(Game::getId).isNotNull();
     assertThat(createdGame).extracting(Game::getStatus).isEqualTo(Status.STARTED);
-    assertThat(createdGame).extracting(Game::currentPlayer).extracting(Player::getName).isEqualTo(SOUTH_NAME);
-    assertThat(createdGame).extracting(Game::getBoard).extracting(Board::getSouth).extracting(Player::getName).isEqualTo(SOUTH_NAME);
-    assertThat(createdGame).extracting(Game::getBoard).extracting(Board::getNorth).extracting(Player::getName).isEqualTo(NORTH_NAME);
+    assertThat(createdGame).extracting(Game::currentPlayer).extracting(Player::getName)
+        .isEqualTo(SOUTH_NAME);
+    assertThat(createdGame).extracting(Game::getBoard).extracting(Board::getSouth)
+        .extracting(Player::getName).isEqualTo(SOUTH_NAME);
+    assertThat(createdGame).extracting(Game::getBoard).extracting(Board::getNorth)
+        .extracting(Player::getName).isEqualTo(NORTH_NAME);
   }
 
   // TODO add test that if move ends on Kalah, don't flip turns
   @Test
+  @Disabled("Check the DB for this test")
   public void givenPlayer_andPit_whenMove_thenReturnNewBoard() throws Exception {
     // GIVEN a Player and a move (a Pit number)
     final int startingIndex = 3;
@@ -161,6 +171,36 @@ public class GameControllerIT {
     final Game gameOver = deserializeResponse(moveMadeResult);
     assertThat(gameOver).extracting(Game::getId).isEqualTo(lastMoveGameId);
     assertThat(gameOver).extracting(Game::getStatus).isEqualTo(Status.SOUTH_WINS);
+  }
+
+  @Test
+  public void givenStartedGame_whenMoveWillCauseCapture_thenCaptureRivalSeeds() throws Exception {
+    // GIVEN
+    final UUID willCaptureGameId = UUID.fromString(WILL_CAPTURE_GAME_ID);
+    final MoveRequest moveRequest = MoveRequest.builder()
+        .pit(0)
+        .playerType(PlayerType.SOUTH)
+        .build();
+    final String requestContent = this.objectMapper.writeValueAsString(moveRequest);
+    // WHEN
+    final MvcResult moveMadeResult = this.mockMvc.perform(
+        patch(Endpoints.GAMES + "/" + willCaptureGameId)
+            .contentType(APPLICATION_JSON).content(requestContent))
+        .andExpect(status().isOk())
+        .andReturn();
+    // THEN
+    final Game pitCapturedGame = deserializeResponse(moveMadeResult);
+    assertThat(pitCapturedGame).extracting(Game::getId).isEqualTo(willCaptureGameId);
+    assertThat(pitCapturedGame).extracting(Game::getBoard).extracting(Board::getSouth)
+        .extracting(Player::getPits)
+        .extracting(p -> p.get(4)).extracting(Pit::getOwnSeeds).isEqualTo(0);
+    assertThat(pitCapturedGame).extracting(Game::getBoard).extracting(Board::getNorth)
+        .extracting(Player::getPits)
+        .extracting(p -> p.get(1)).extracting(Pit::getOwnSeeds).isEqualTo(0);
+    assertThat(pitCapturedGame).extracting(Game::getBoard).extracting(Board::getSouth)
+        .extracting(Player::getKalah)
+        .extracting(Kalah::getSeeds)
+        .isEqualTo(10);  // 3 initial + 5 captured (rival) + 1 captured (own) + 1 my own piece
   }
 
   private Game deserializeResponse(MvcResult createdGameResult)

@@ -53,14 +53,16 @@ public class Pit implements Cell {
     return this.owner.equals(player);
   }
 
-  private boolean isEmpty() {
-    return ownSeeds == 0 && rivalSeeds == 0;
+  private boolean wasEmptyBeforeMovement() {
+    return ownSeeds == 1 && rivalSeeds == 0;
   }
 
   public int acceptCapture() {
-    int originalSeeds = this.ownSeeds;
+    int originalOwnSeeds = this.ownSeeds;
+    int originalRivalSeeds = this.rivalSeeds;
     this.setOwnSeeds(0);
-    return originalSeeds;
+    this.setRivalSeeds(0);
+    return originalOwnSeeds + originalRivalSeeds;
   }
 
   @Override
@@ -68,7 +70,7 @@ public class Pit implements Cell {
     Player currentPlayer = board.getCurrentPlayer();
     System.out.println("Reached the end of the turn on cell: " + this.toString() + " for player: "
         + currentPlayer + ":" + currentPlayer.getType());
-    if (this.isPlayerPit(currentPlayer) && this.isEmpty()) {
+    if (this.isPlayerPit(currentPlayer) && this.wasEmptyBeforeMovement()) {
       int oppositePitIndex = Board.getOppositePitIndex(this.getIndex());
       Pit rivalPit = board.getRivalPits(currentPlayer).stream()
           .filter(p -> p.getIndex() == oppositePitIndex)

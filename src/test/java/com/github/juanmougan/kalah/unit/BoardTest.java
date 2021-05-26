@@ -23,7 +23,7 @@ class BoardTest {
   @Test
   void givenMovementOnlyBetweenSelfPits_whenPerformMovement_thenUpdateBoardStatus() {
     // GIVEN a Board
-    Player south = createPlayerWithSeeds(SOUTH, List.of(0, 3, 0, 0, 0, 0),
+    Player south = createPlayerWithSeeds(SOUTH, List.of(0, 3, 0, 0, 1, 0),
         List.of(0, 0, 0, 0, 0, 0));
     Player north = createPlayerWithSeeds(PlayerType.NORTH, List.of(0, 3, 0, 0, 0, 0),
         List.of(0, 0, 0, 0, 0, 0));
@@ -36,7 +36,7 @@ class BoardTest {
     board.performMovement(south, 1);
     // THEN update the Board status
     assertThat(board.getSouth().getPits()).extracting(Pit::getOwnSeeds)
-        .containsExactly(0, 0, 1, 1, 1, 0);
+        .containsExactly(0, 0, 1, 1, 2, 0);
   }
 
   @Test
@@ -106,7 +106,7 @@ class BoardTest {
     Player south = createPlayerWithSeedsAndKalah(
         SOUTH,
         List.of(0, 0, 0, 0, 0, 0),
-        List.of(0, 0, 0, 0, 0, 0),
+        List.of(0, 0, 1, 0, 1, 0),
         Kalah.builder().id(UUID.randomUUID()).seeds(5).build()
     );
     Player north = createPlayerWithSeedsAndKalah(

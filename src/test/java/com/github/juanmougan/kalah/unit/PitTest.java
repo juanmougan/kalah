@@ -13,6 +13,7 @@ import com.github.juanmougan.kalah.Player;
 import com.github.juanmougan.kalah.PlayerType;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class PitTest {
@@ -123,6 +124,7 @@ class PitTest {
   }
 
   @Test
+  @Disabled("Review")
   void givenIsEmptyOwnPit_whenPerformAfterTurnAction_thenPerformActionAndSwitchTurn() {
     // GIVEN a Pit for the rival with both theirs and ours seeds
     final int NORTH_SEEDS_IN_OPPOSITE_PIT = 3;
